@@ -1,5 +1,6 @@
 import WebAudioScheduler from "web-audio-scheduler";
 import { sample, range } from "lodash";
+import trigger from "./trigger";
 
 const SECONDS_PER_BEAT = 60.0 / 127;
 const waveShapes = ["square", "sin", "sawtooth", "triangle"];
@@ -7,39 +8,13 @@ const waveShapes = ["square", "sin", "sawtooth", "triangle"];
 let ctx = new AudioContext();
 let sched = new WebAudioScheduler({ context: ctx });
 
-let trigger = ({
-  type = "sin",
-  attack = 0,
-  release = 0,
-  frequency = 1000
-}) => e => {
-  let t = e.playbackTime;
-  let gain = ctx.createGain();
-
-  if (attack || release) {
-    gain.gain.value = 0;
-    gain.gain.linearRampToValueAtTime(1, t + attack);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + attack + release);
-    gain.gain.setValueAtTime(0, t + attack + release + 0.1);
-  }
-
-  gain.connect(ctx.destination);
-
-  let osc = ctx.createOscillator();
-  osc.type = type;
-  osc.frequency.value = frequency;
-  osc.connect(gain);
-  osc.start(t);
-
-  return { osc, gain };
-};
-
 let octify = (freq, numOctaves) => range(1, numOctaves).map(x => freq * x);
 
 let pulse = e => {
   sched.insert(
     e.args.delay ? e.playbackTime + e.args.delay : e.playbackTime,
     trigger({
+      ctx,
       type: sample(waveShapes),
       attack: SECONDS_PER_BEAT / 2,
       release: SECONDS_PER_BEAT / 2,
@@ -50,16 +25,22 @@ let pulse = e => {
   sched.insert(e.playbackTime + SECONDS_PER_BEAT, pulse, e.args);
 };
 
-let playing = false;
-document.body.onclick = () => {
-  if (!playing) {
-    sched.start(pulse, { delay: 0 });
-    sched.start(pulse, { delay: SECONDS_PER_BEAT / 2 });
-    playing = true;
-  } else {
-    sched.stop();
-    playing = false;
-  }
-};
+let song = (() => {
+  let playing;
+  return () => {
+    if (!playing) {
+      // DOWNBEATS
+      sched.start(pulse, { delay: 0 });
+      // UPBEATS
+      sched.start(pulse, { delay: SECONDS_PER_BEAT / 2 });
+      playing = true;
+    } else {
+      sched.stop();
+      playing = false;
+    }
+  };
+})();
+
+document.body.onclick = _ => song();
 
 export default () => null;
