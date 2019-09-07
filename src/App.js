@@ -2,6 +2,7 @@ import WebAudioScheduler from "web-audio-scheduler";
 import { sample, range } from "lodash";
 
 const SECONDS_PER_BEAT = 60.0 / 127;
+const waveShapes = ["square", "sin", "sawtooth", "triangle"];
 
 let ctx = new AudioContext();
 let sched = new WebAudioScheduler({ context: ctx });
@@ -33,21 +34,16 @@ let trigger = ({
   return { osc, gain };
 };
 
-let octify = (freq, numOctaves) => [
-  freq,
-  ...range(numOctaves).map(x => freq * (x + 1))
-];
-
-let randomNote = notes => sample(notes);
+let octify = (freq, numOctaves) => range(1, numOctaves).map(x => freq * x);
 
 let pulse = e => {
   sched.insert(
     e.args.delay ? e.playbackTime + e.args.delay : e.playbackTime,
     trigger({
-      type: sample(["square", "sin", "sawtooth", "triangle"]),
+      type: sample(waveShapes),
       attack: SECONDS_PER_BEAT / 2,
       release: SECONDS_PER_BEAT / 2,
-      frequency: randomNote(octify(60, 3))
+      frequency: sample(octify(60, 3))
     })
   );
 
