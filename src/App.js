@@ -37,11 +37,12 @@ let octify = (freq, numOctaves) => [
   freq,
   ...range(numOctaves).map(x => freq * (x + 1))
 ];
+
 let randomNote = notes => sample(notes);
 
 let pulse = e => {
   sched.insert(
-    e.playbackTime,
+    e.args.delay ? e.playbackTime + e.args.delay : e.playbackTime,
     trigger({
       type: "square",
       attack: SECONDS_PER_BEAT / 2,
@@ -50,13 +51,14 @@ let pulse = e => {
     })
   );
 
-  sched.insert(e.playbackTime + SECONDS_PER_BEAT, pulse);
+  sched.insert(e.playbackTime + SECONDS_PER_BEAT, pulse, e.args);
 };
 
 let playing = false;
 document.body.onclick = () => {
   if (!playing) {
-    sched.start(pulse);
+    sched.start(pulse, { delay: 0 });
+    sched.start(pulse, { delay: SECONDS_PER_BEAT / 2 });
     playing = true;
   } else {
     sched.stop();
