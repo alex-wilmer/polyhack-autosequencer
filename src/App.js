@@ -1,85 +1,67 @@
-let ctx = new AudioContext()
+import WebAudioScheduler from "web-audio-scheduler";
+import { sample, range } from "lodash";
+
+const SECONDS_PER_BEAT = 60.0 / 127;
+
+let ctx = new AudioContext();
+let sched = new WebAudioScheduler({ context: ctx });
 
 let trigger = ({
-  type = 'sin',
-  attack = 0, 
+  type = "sin",
+  attack = 0,
   release = 0,
-  frequency = 1000,
-  delays = 0,
-  delayTime = 10,
-}) => {
-  let createDelay = ({
-    time, 
-    gain,
-  }) => {
-    let delayGain = ctx.createGain()
-    delayGain.gain.value = gain
-    delayGain.connect(ctx.destination)
-    
-    let delay = ctx.createDelay(10);
-    delay.delayTime.value = time
-    delay.connect(delayGain)
-    
-    return delay
-  }
-  
-  let gain = ctx.createGain()
-  
+  frequency = 1000
+}) => e => {
+  let t = e.playbackTime;
+  let gain = ctx.createGain();
+
   if (attack || release) {
-    gain.gain.value = 0
-    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + attack)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + release)
-    gain.gain.setValueAtTime(0, ctx.currentTime + release)
-  } 
-  
-  Array(delays).fill().map((_, i) => createDelay({
-    time: (i + 1) / delayTime,
-    gain: 1 / (i + 1 * 1.5), 
-  })).forEach(d => gain.connect(d))
-  
-  gain.connect(ctx.destination)
-  
-  let osc = ctx.createOscillator()
-  osc.type = type
-  osc.frequency.value = frequency
-  osc.connect(gain)
-  osc.start(ctx.currentTime)
-  
-  return { osc, gain }
-}
+    gain.gain.value = 0;
+    gain.gain.linearRampToValueAtTime(1, t + attack);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + attack + release);
+    gain.gain.setValueAtTime(0, t + attack + release + 0.1);
+  }
 
-let lfo = ({
-  osc, rate, freq, fn
-}) => {
-  requestAnimationFrame(t => {
-    osc.frequency.value = Math[fn](t / rate) * freq
-    
-    lfo({ osc, rate, freq, fn })
-  })
-}  
+  gain.connect(ctx.destination);
 
-trigger({ type: 'square', attack: 0, release: 0.2, frequency: 1000, delays: 10, delayTime: 20 })
-trigger({ type: 'square', attack: 0.1, release: 0.3, frequency: 500, delays: 7, delayTime: 5 })
-trigger({ type: 'square', attack: 0, release: 0.2, frequency: 1000, delays: 10, delayTime: 20 })
-trigger({ type: 'square', attack: 0, release: 0.2, frequency: 1000, delays: 10, delayTime: 20 })
-trigger({ type: 'sin', attack: 0.4, release: 0.5, frequency: 600 })
-trigger({ type: 'sin', attack: 0.6, release: 0.7, frequency: 200 })
+  let osc = ctx.createOscillator();
+  osc.type = type;
+  osc.frequency.value = frequency;
+  osc.connect(gain);
+  osc.start(t);
 
-let t1 = trigger({ type: 'square', frequency: 600 })
+  return { osc, gain };
+};
 
-lfo({
-  osc: t1.osc,
-  rate: 30,
-  freq: 500,
-  fn: 'sin'
-})
-// lfo(trigger({ type: 'triangle' }))
-// 
-// lfo(trigger({ type: 'square' }))
-// lfo(trigger({ type: 'triangle' }))
-// 
-// lfo(trigger({ type: 'sin' }))
-// lfo(trigger({ type: 'sin' }))
-// lfo(trigger({ type: 'sin' }))
+let octify = (freq, numOctaves) => [
+  freq,
+  ...range(numOctaves).map(x => freq * x + 1)
+];
+let randomNote = notes => sample(notes);
+
+let pulse = e => {
+  sched.insert(
+    e.playbackTime,
+    trigger({
+      type: "square",
+      attack: SECONDS_PER_BEAT / 2,
+      release: SECONDS_PER_BEAT / 2,
+      frequency: randomNote(octify(60, 3))
+    })
+  );
+
+  sched.insert(e.playbackTime + SECONDS_PER_BEAT, pulse);
+};
+
+let playing = false;
+document.body.onclick = () => {
+  if (!playing) {
+    sched.start(pulse);
+    playing = true;
+  } else {
+    sched.stop();
+    playing = false;
+  }
+};
 
 export default () => null;
