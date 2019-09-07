@@ -44,7 +44,7 @@ let pulse = e => {
   sched.insert(
     e.args.delay ? e.playbackTime + e.args.delay : e.playbackTime,
     trigger({
-      type: "square",
+      type: sample(["square", "sin", "sawtooth", "triangle"]),
       attack: SECONDS_PER_BEAT / 2,
       release: SECONDS_PER_BEAT / 2,
       frequency: randomNote(octify(60, 3))
