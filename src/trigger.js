@@ -1,5 +1,5 @@
 export default ({
-  type = "sin",
+  type = "sine",
   attack = 0,
   release = 0,
   frequency = 1000,
