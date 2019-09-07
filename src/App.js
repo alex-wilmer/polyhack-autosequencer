@@ -35,7 +35,7 @@ let trigger = ({
 
 let octify = (freq, numOctaves) => [
   freq,
-  ...range(numOctaves).map(x => freq * x + 1)
+  ...range(numOctaves).map(x => freq * (x + 1))
 ];
 let randomNote = notes => sample(notes);
 
