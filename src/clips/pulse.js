@@ -7,11 +7,9 @@ let pulse = e => {
   e.args.sched.insert(
     e.args.delay ? e.playbackTime + e.args.delay : e.playbackTime,
     synth({
-      ctx: e.args.ctx,
       type: sample(WAVE_SHAPES),
-      attack: e.args.attack,
-      release: e.args.release,
-      frequency: sample(octify(80, 3))
+      frequency: sample(octify(80, 3)),
+      ...e.args
     })
   );
 

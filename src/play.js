@@ -4,6 +4,9 @@ import load from "audio-loader";
 import pulse from "clips/pulse";
 import beat from "clips/beat";
 
+const QUARTER_BEAT = SECONDS_PER_BEAT / 4;
+const HALF_BEAT = SECONDS_PER_BEAT / 2;
+
 let main = async () => {
   let beatBuffer = await load("beat.wav");
 
@@ -20,22 +23,22 @@ let main = async () => {
     }
   };
 
-  document.body.onclick = _ => {
+  document.body.onclick = async _ => {
     play(pulse, {
       ctx,
       sched,
       secondsPerBeat: SECONDS_PER_BEAT,
-      attack: SECONDS_PER_BEAT / 4,
-      release: SECONDS_PER_BEAT / 4
+      attack: QUARTER_BEAT,
+      release: QUARTER_BEAT
     });
 
     play(pulse, {
       ctx,
       sched,
       secondsPerBeat: SECONDS_PER_BEAT,
-      delay: SECONDS_PER_BEAT / 2,
-      attack: SECONDS_PER_BEAT / 4,
-      release: SECONDS_PER_BEAT / 4
+      delay: HALF_BEAT,
+      attack: QUARTER_BEAT,
+      release: QUARTER_BEAT
     });
 
     play(beat, {
