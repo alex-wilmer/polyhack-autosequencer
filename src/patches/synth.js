@@ -4,8 +4,8 @@ export default ({
   release = 0,
   frequency = 1000,
   ctx
-}) => event => {
-  let t = event.playbackTime;
+}) => e => {
+  let t = e.playbackTime;
   let gain = ctx.createGain();
 
   if (attack || release) {
