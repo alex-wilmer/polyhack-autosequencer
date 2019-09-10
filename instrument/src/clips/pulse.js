@@ -1,7 +1,6 @@
-let pulse = ({ sched, delay, patch }) => e => {
+let pulse = ({ sched, delay, patch = () => {}, repeat }) => e => {
   sched.insert(delay ? e.playbackTime + delay : e.playbackTime, patch);
-
-  // e.args.sched.insert(e.playbackTime + e.args.secondsPerBeat, pulse, e.args);
+  sched.insert(e.playbackTime + repeat(), pulse({ sched, delay, patch, repeat }));
 };
 
 export default pulse;

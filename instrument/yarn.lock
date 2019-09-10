@@ -1113,6 +1113,11 @@
     "@svgr/plugin-svgo" "^4.3.1"
     loader-utils "^1.2.3"
 
+"@tonaljs/tonal@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@tonaljs/tonal/-/tonal-3.2.2.tgz#c330987fe1730ee9bc929c50b2f51bfcc2861f90"
+  integrity sha512-j03zV3gScWyN9uMFlNSB/oQSXYLYrzH2vgkLBo311+dW2t3ChXIqftTI99Z17eEiv2SphU15iQRIoX7xVum4WQ==
+
 "@types/babel__core@^7.1.0":
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.2.tgz#608c74f55928033fce18b99b213c16be4b3d114f"
