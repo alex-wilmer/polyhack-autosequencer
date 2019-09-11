@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 import { note } from "@tonaljs/tonal";
-import { sample } from "lodash";
+import { sample, range } from "lodash";
 import load from "audio-loader";
 import pulse from "clips/pulse";
 import sampler from "patches/sampler";
@@ -29,9 +29,9 @@ import { ctx, sched } from "init";
   // });
 
 let main = async () => {
-  let beatBuffer = await load("beat.wav");
+  let beatBuffers = await Promise.all(range(5).map(x => load(`beats/${x}.wav`)));
 
-  let currentBeat = 1
+  let currentBeat = 0
   let incrementBeat = () => currentBeat++
 
   document.body.onclick = _ => {
@@ -52,7 +52,7 @@ let main = async () => {
         patch: synth({
           ctx,
           type: () => sample(WAVE_SHAPES),
-          frequency: () => sample(octify(note('F1').freq, 5)),
+          frequency: () => sample(octify(note(currentBeat % 32 < 16 ? 'F1' : sample(['Ab1', 'Bb1', 'Eb1'])).freq, 5)),
           volume: () => 0.5,
           attack: () => sample([0.1, 0.2, 0.3]),
           release: () => sample([EIGHTH_NOTE]),
@@ -65,7 +65,7 @@ let main = async () => {
       repeat: () => WHOLE_NOTE * 8,
       patch: sampler({
         ctx,
-        buffer: beatBuffer
+        buffer: () => sample(beatBuffers) 
       })
     }));
   };
