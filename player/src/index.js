@@ -1,2 +1,2 @@
 import "./index.css";
-import "./play";
+import "./main";
