@@ -11,6 +11,7 @@ export default ({
   getCurrentBeat,
   _8BarBeats
 }) => {
+  // ONLY USED TO KEEP TRACK OF THE CURRENT BEAT
   fire({
     sched,
     repeat: () => {
