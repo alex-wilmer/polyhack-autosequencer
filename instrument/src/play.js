@@ -29,45 +29,52 @@ import { ctx, sched } from "init";
   // });
 
 let main = async () => {
-  let beatBuffers = await Promise.all(range(5).map(x => load(`beats/${x}.wav`)));
-
+  let playing = false;
+  let beatBuffers = await Promise.all(range(7).map(x => load(`beats/${x}.wav`)));
   let currentBeat = 0
   let incrementBeat = () => currentBeat++
 
   document.body.onclick = _ => {
-    sched.start(
-      pulse({
-        sched,
-        repeat: () => {
-          incrementBeat()
-          return QUARTER_NOTE
-        },
-      })
-    )
+    if (!playing) {
+      playing = true;
 
-    sched.start(
-      pulse({
-        sched,
-        repeat: () => sample([QUARTER_NOTE, EIGHTH_NOTE, SIXTEENTH_NOTE]),
-        patch: synth({
-          ctx,
-          type: () => sample(WAVE_SHAPES),
-          frequency: () => sample(octify(note(currentBeat % 32 < 16 ? 'F1' : sample(['Ab1', 'Bb1', 'Eb1'])).freq, 5)),
-          volume: () => 0.5,
-          attack: () => sample([0.1, 0.2, 0.3]),
-          release: () => sample([EIGHTH_NOTE]),
+      sched.start(
+        pulse({
+          sched,
+          repeat: () => {
+            incrementBeat()
+            return QUARTER_NOTE
+          },
         })
-      })
-    );
+      )
 
-    sched.start(pulse({
-      sched,
-      repeat: () => WHOLE_NOTE * 8,
-      patch: sampler({
-        ctx,
-        buffer: () => sample(beatBuffers) 
-      })
-    }));
+      sched.start(
+        pulse({
+          sched,
+          repeat: () => sample([QUARTER_NOTE, EIGHTH_NOTE, SIXTEENTH_NOTE]),
+          patch: () => synth({
+            ctx,
+            type: () => sample(WAVE_SHAPES),
+            frequency: () => sample(octify(note(currentBeat % 32 < 16 ? 'F1' : sample(['Ab1', 'Bb1', 'Eb1'])).freq, 5)),
+            volume: () => 0.5,
+            attack: () => sample([0.1]),
+            release: () => sample([QUARTER_NOTE]),
+          })
+        })
+      );
+
+      sched.start(pulse({
+        sched,
+        repeat: () => WHOLE_NOTE * 8,
+        patch: () => sampler({
+          ctx,
+          buffer: () => sample(beatBuffers) 
+        })
+      }));
+    } else {
+      sched.stop(true)
+      playing = false;
+    }
   };
 };
 
