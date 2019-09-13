@@ -1,8 +1,7 @@
 {
-  "devDependencies": {
-    "prettier": "^1.18.2"
-  },
-  "dependencies": {
-    "fs-extra": "^8.1.0"
+  "private": true,
+  "workspaces": "pkgs/*",
+  "scripts": {
+    "clean": "scripts/clean.sh"
   }
 }
